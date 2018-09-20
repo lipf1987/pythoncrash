@@ -59,6 +59,12 @@ Print information about tasks in more details as the built-in 'ps'
 command
 '''
 
+rprog("test1", "Detailed info about tasks",
+      "-h   - list available optoions",
+      help)
+help = '''
+test
+'''
 rprog("taskinfo", "Detailed info about tasks",
       "-h   - list available optoions",
       help)

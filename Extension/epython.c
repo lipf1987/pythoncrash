@@ -240,7 +240,7 @@ void _init(void)  {
         fprintf(stderr, "crash used for build: %s, currently running: %s\n",
                 build_crash_version, build_version);
         fprintf(stderr, "Cannot continue, exiting\n\n");
-        exit(1);
+        //exit(1);
     }
 
 

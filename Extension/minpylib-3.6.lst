@@ -64,3 +64,5 @@ warnings.py
 weakref.py
 weakref.py
 _weakrefset.py
+subprocess.py
+threading.py
