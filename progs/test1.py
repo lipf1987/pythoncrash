@@ -167,88 +167,60 @@ def android_log(num):
                 }
         return numbers.get(num, None)
 
-
-gdbmi = Gdb('/home/lipf/bin/aarch64-linux-android-gdb', '/home/lipf/tmp/ddr_test/0913/20/symbols/system/bin/logd','/home/lipf/tmp/ddr_test/0913/20/core.209.logd' )
-gdbmi.open()
-logBuf = gdbmi.get_value_of('logBuf')
-mLogId = gdbmi.field_offset('LogBufferElement', 'mLogId')
-mUid = gdbmi.field_offset('LogBufferElement', 'mUid')
-mPid = gdbmi.field_offset('LogBufferElement', 'mPid')
-mTid = gdbmi.field_offset('LogBufferElement', 'mTid')
-mMsg = gdbmi.field_offset('LogBufferElement', 'mMsg')
-mMsgLen = gdbmi.field_offset('LogBufferElement', 'mMsgLen')
-mDropped = gdbmi.field_offset('LogBufferElement', 'mDropped')
-mRealTime = gdbmi.field_offset('LogBufferElement', 'mRealTime')
-sizeof_mLogId = gdbmi.sizeof('log_id_t')
-sizeof_mUid = gdbmi.sizeof('uid_t')
-sizeof_mPid = gdbmi.sizeof('pid_t')
-sizeof_mTid = gdbmi.sizeof('pid_t')
-sizeof_mMsg = gdbmi.sizeof('char *')
-sizeof_mMsgLen  = gdbmi.sizeof('unsigned short')
-sizeof_mRealTime  = gdbmi.sizeof('log_time')
-__prev_ = readProcessMem(taskaddr, logBuf, 8)
-__next_ = readProcessMem(taskaddr, logBuf + 8, 8)
-__prev_ =  int.from_bytes(__prev_, byteorder='little')
-__next_  =  int.from_bytes(__next_ , byteorder='little')
-offset_prev = 0;
-offset_next = 8 * 1
-offset_msg  = 8 * 2
-print ( "logBuf %lx" % (logBuf))
-print(" mLogId %d " % (mLogId ))
-print(" mUId %d " % (mUid))
-print(" mPId %d " % (mPid))
-print(" mTId %d " % (mTid))
-print(" mMsg %d " % (mMsg))
-print(" mMsgLen  %d " % (mMsgLen))
-print(" mDropped  %d " % (mDropped))
-print(" mRealTime  %d " % (mRealTime))
-print(" sizeof_mTid   %d " % (sizeof_mTid))
-print ( "__prev_  %lx" % (__prev_ ))
-print ( "__next_  %lx" % (__next_ ))
-
-__next_ = readProcessMem(taskaddr, __next_ + offset_next , 8)
-__next_  =  int.from_bytes(__next_ , byteorder='little')
-Element = readProcessMem(taskaddr, __next_ + offset_msg , 8)
-Element =  int.from_bytes(Element, byteorder='little')
-print ( "__next_  %lx" % (__next_ ))
-LogId = int.from_bytes(readProcessMem(taskaddr, Element + mLogId , sizeof_mLogId ),byteorder='little')
-Uid = int.from_bytes(readProcessMem(taskaddr, Element + mUid , sizeof_mUid ),byteorder='little')
-Pid = int.from_bytes(readProcessMem(taskaddr, Element + mPid , sizeof_mPid ),byteorder='little')
-Tid = int.from_bytes(readProcessMem(taskaddr, Element + mTid , int(sizeof_mTid) ),byteorder='little')
-Msgaddr = int.from_bytes(readProcessMem(taskaddr, Element + mMsg , sizeof_mMsg ),byteorder='little')
-MsgLen = int.from_bytes(readProcessMem(taskaddr, Element + mMsgLen , sizeof_mMsgLen ),byteorder='little')
-if(MsgLen !=0 ):
-    Msg = readProcessMem(taskaddr, Msgaddr, MsgLen)
-    msg=''
-    if(Msg[0] < 9):
-        log = android_log(Msg[0])
-        Msg = Msg[1:len(Msg) - 1].decode("ascii")
-        for i in range(MsgLen - 2):
-            if(Msg[i]=='\x00'):
-                msg =msg + ": "
-            else:
-                msg =msg +  Msg[i]
-        msg = msg.rstrip('\r\n')
-        #print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,Msg[1:len(Msg) - 1].decode("ascii")))
-        print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
-
-while __next_ != logBuf:
+def logcat(opt):
+    gdbmi = Gdb('/home/lipf/bin/aarch64-linux-android-gdb', '/home/lipf/tmp/ddr_test/0913/20/symbols/system/bin/logd','/home/lipf/tmp/ddr_test/0913/20/core.209.logd' )
+    gdbmi.open()
+    logBuf = gdbmi.get_value_of('logBuf')
+    mLogId = gdbmi.field_offset('LogBufferElement', 'mLogId')
+    mUid = gdbmi.field_offset('LogBufferElement', 'mUid')
+    mPid = gdbmi.field_offset('LogBufferElement', 'mPid')
+    mTid = gdbmi.field_offset('LogBufferElement', 'mTid')
+    mMsg = gdbmi.field_offset('LogBufferElement', 'mMsg')
+    mMsgLen = gdbmi.field_offset('LogBufferElement', 'mMsgLen')
+    mDropped = gdbmi.field_offset('LogBufferElement', 'mDropped')
+    mRealTime = gdbmi.field_offset('LogBufferElement', 'mRealTime')
+    sizeof_mLogId = gdbmi.sizeof('log_id_t')
+    sizeof_mUid = gdbmi.sizeof('uid_t')
+    sizeof_mPid = gdbmi.sizeof('pid_t')
+    sizeof_mTid = gdbmi.sizeof('pid_t')
+    sizeof_mMsg = gdbmi.sizeof('char *')
+    sizeof_mMsgLen  = gdbmi.sizeof('unsigned short')
+    sizeof_mRealTime  = gdbmi.sizeof('log_time')
+    __prev_ = readProcessMem(taskaddr, logBuf, 8)
+    __next_ = readProcessMem(taskaddr, logBuf + 8, 8)
+    __prev_ =  int.from_bytes(__prev_, byteorder='little')
+    __next_  =  int.from_bytes(__next_ , byteorder='little')
+    offset_prev = 0;
+    offset_next = 8 * 1
+    offset_msg  = 8 * 2
+    print ( "logBuf %lx" % (logBuf))
+    print(" mLogId %d " % (mLogId ))
+    print(" mUId %d " % (mUid))
+    print(" mPId %d " % (mPid))
+    print(" mTId %d " % (mTid))
+    print(" mMsg %d " % (mMsg))
+    print(" mMsgLen  %d " % (mMsgLen))
+    print(" mDropped  %d " % (mDropped))
+    print(" mRealTime  %d " % (mRealTime))
+    print(" sizeof_mTid   %d " % (sizeof_mTid))
+    print ( "__prev_  %lx" % (__prev_ ))
+    print ( "__next_  %lx" % (__next_ ))
+    
     __next_ = readProcessMem(taskaddr, __next_ + offset_next , 8)
     __next_  =  int.from_bytes(__next_ , byteorder='little')
     Element = readProcessMem(taskaddr, __next_ + offset_msg , 8)
     Element =  int.from_bytes(Element, byteorder='little')
-    #print ( "__next_  %lx" % (__next_ ))
+    print ( "__next_  %lx" % (__next_ ))
     LogId = int.from_bytes(readProcessMem(taskaddr, Element + mLogId , sizeof_mLogId ),byteorder='little')
     Uid = int.from_bytes(readProcessMem(taskaddr, Element + mUid , sizeof_mUid ),byteorder='little')
     Pid = int.from_bytes(readProcessMem(taskaddr, Element + mPid , sizeof_mPid ),byteorder='little')
     Tid = int.from_bytes(readProcessMem(taskaddr, Element + mTid , int(sizeof_mTid) ),byteorder='little')
     Msgaddr = int.from_bytes(readProcessMem(taskaddr, Element + mMsg , sizeof_mMsg ),byteorder='little')
     MsgLen = int.from_bytes(readProcessMem(taskaddr, Element + mMsgLen , sizeof_mMsgLen ),byteorder='little')
-    if(MsgLen !=0):
+    if(MsgLen !=0 ):
         Msg = readProcessMem(taskaddr, Msgaddr, MsgLen)
         msg=''
         if(Msg[0] < 9):
-            #print (" %s" % (Msg[1:]))
             log = android_log(Msg[0])
             Msg = Msg[1:len(Msg) - 1].decode("ascii")
             for i in range(MsgLen - 2):
@@ -256,8 +228,68 @@ while __next_ != logBuf:
                     msg =msg + ": "
                 else:
                     msg =msg +  Msg[i]
-            msg = msg.rstrip('\r\n ')
+            msg = msg.rstrip('\r\n')
             #print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,Msg[1:len(Msg) - 1].decode("ascii")))
-            print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
+            if(opt == 0):
+                print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
+            elif(opt == LogId):
+                print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
+    
+    while __next_ != logBuf:
+        __next_ = readProcessMem(taskaddr, __next_ + offset_next , 8)
+        __next_  =  int.from_bytes(__next_ , byteorder='little')
+        Element = readProcessMem(taskaddr, __next_ + offset_msg , 8)
+        Element =  int.from_bytes(Element, byteorder='little')
+        #print ( "__next_  %lx" % (__next_ ))
+        LogId = int.from_bytes(readProcessMem(taskaddr, Element + mLogId , sizeof_mLogId ),byteorder='little')
+        Uid = int.from_bytes(readProcessMem(taskaddr, Element + mUid , sizeof_mUid ),byteorder='little')
+        Pid = int.from_bytes(readProcessMem(taskaddr, Element + mPid , sizeof_mPid ),byteorder='little')
+        Tid = int.from_bytes(readProcessMem(taskaddr, Element + mTid , int(sizeof_mTid) ),byteorder='little')
+        Msgaddr = int.from_bytes(readProcessMem(taskaddr, Element + mMsg , sizeof_mMsg ),byteorder='little')
+        MsgLen = int.from_bytes(readProcessMem(taskaddr, Element + mMsgLen , sizeof_mMsgLen ),byteorder='little')
+        if(MsgLen !=0):
+            Msg = readProcessMem(taskaddr, Msgaddr, MsgLen)
+            msg=''
+            if(Msg[0] < 9):
+                #print (" %s" % (Msg[1:]))
+                log = android_log(Msg[0])
+                Msg = Msg[1:len(Msg) - 1].decode("ascii")
+                for i in range(MsgLen - 2):
+                    if(Msg[i]=='\x00'):
+                        msg =msg + ": "
+                    else:
+                        msg =msg +  Msg[i]
+                msg = msg.rstrip('\r\n ')
+                if(opt == 0):
+                    print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
+                elif(opt == LogId):
+                    print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
+                #print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,Msg[1:len(Msg) - 1].decode("ascii")))
+                #print (" %d %d %d %d %d  %lx %s %s" % (LogId,Uid,Pid,Tid,MsgLen,Msgaddr, log,msg))
+    
+    gdbmi.close()
+op =  OptionParser()
 
-gdbmi.close()
+op.add_option("-m", dest="log", default = 0,
+                action="store_true",
+                help="main_log")
+op.add_option("-r", dest="log", default = 1,
+                action="store_true",
+                help="radio_log")
+op.add_option("-e", dest="log", default = 2,
+                action="store_true",
+                help="event_log")
+op.add_option("-s", dest="log", default = 3,
+                action="store_true",
+                help="system_log")
+op.add_option("-c", dest="log", default = 4,
+                action="store_true",
+                help="crash_log")
+op.add_option("-a", dest="log", default = 5,
+                action="store_true",
+                help="security_log")
+op.add_option("-k", dest="log", default = 6,
+                action="store_true",
+                help="kernel_log")
+(o, args) = op.parse_args()
+logcat(o.log)
